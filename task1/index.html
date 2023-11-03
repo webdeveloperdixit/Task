@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Button Reordering</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="button-container">
+        
+        <button class="reorder-button" id="1">1</button>
+        <button class="reorder-button" id="2">2</button>
+        <button class="reorder-button" id="3">3</button>
+        
+    </div>
+
+    <script>
+        $(document).ready(function() {
+           
+            $('.reorder-button').click(function() {
+                // Get the ID of the clicked button
+                var clickedButtonId = $(this).attr('id');
+                
+                
+                if (parseInt(clickedButtonId) > 1) {
+                    
+                    var upperNeighbor = $('#' + (parseInt(clickedButtonId) - 1));
+                    // Change the positions of the buttons
+                    $(this).after(upperNeighbor);
+                } else {
+                    // Find the button below the clicked one
+                    var lowerNeighbor = $('#' + (parseInt(clickedButtonId) + 1));
+                    // Change the positions of the buttons
+                    $(this).before(lowerNeighbor);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

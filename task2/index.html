@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Table Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <table id="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Date Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be added dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Add new entry button, name input, and send button -->
+    <button id="add-button">Add New Entry</button>
+    <input type="text" id="new-name" placeholder="Name" style="display: none;">
+    <button id="send-button" style="display: none;">Send</button>
+
+    <script>
+        $(document).ready(function() {
+            // Function to populate the table with data
+            function populateTable() {
+                $.ajax({
+                    url: 'backend.php?action=get_data',
+                    method: 'GET',
+                    success: function(data) {
+                        var tableBody = $('#data-table tbody');
+                        tableBody.empty(); // Clear existing rows
+
+                        $.each(data, function(index, item) {
+                            var row = '<tr data-id="' + item.id + '">';
+                            row += '<td>' + item.id + '</td>';
+                            row += '<td><span class="editable">' + item.name + '</span></td>';
+                            row += '<td>' + item.datetime + '</td>';
+                            row += '<td><button class="edit-button">Edit</button> <button class="delete-button">Delete</button></td>';
+                            row += '</tr>';
+                            tableBody.append(row);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error: " + error);
+                    }
+                });
+            }
+
+            // Initial table population
+            populateTable();
+
+            // Add New Entry button click event
+            $('#add-button').click(function() {
+                $('#new-name').show();
+                $('#send-button').show();
+            });
+
+            // Send button click event for adding a new entry
+            $('#send-button').click(function() {
+                var newName = $('#new-name').val();
+
+                $.ajax({
+                    url: 'backend.php?action=add_entry',
+                    method: 'POST',
+                    data: { name: newName },
+                    success: function(response) {
+                        // Reload the table after adding a new entry
+                        populateTable();
+
+                        $('#new-name').val('').hide();
+                        $('#send-button').hide();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error: " + error);
+                    }
+                });
+            });
+
+            // Edit button click event
+            $('#data-table').on('click', '.edit-button', function() {
+                var row = $(this).closest('tr');
+                var nameCell = row.find('td:nth-child(2) .editable');
+                nameCell.attr('contenteditable', true).focus();
+                $(this).text('Save').removeClass('edit-button').addClass('save-button');
+            });
+
+            // Save button click event
+            $('#data-table').on('click', '.save-button', function() {
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+                var nameCell = row.find('td:nth-child(2) .editable');
+                var newName = nameCell.text();
+
+                $.ajax({
+                    url: 'backend.php?action=update_entry',
+                    method: 'POST',
+                    data: { id: id, name: newName },
+                    success: function(response) {
+                        nameCell.attr('contenteditable', false);
+                        $(this).text('Edit').removeClass('save-button').addClass('edit-button');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error: " + error);
+                    }
+                });
+            });
+
+            // Delete button click event
+            $('#data-table').on('click', '.delete-button', function() {
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+
+                $.ajax({
+                    url: 'backend.php?action=delete_entry',
+                    method: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        row.remove();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error: " + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
